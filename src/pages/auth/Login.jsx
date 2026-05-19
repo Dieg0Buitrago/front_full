@@ -91,12 +91,31 @@ export default function Login() {
 
         {/* RIGHT – Form */}
         <div style={{ background: '#fff', padding: '56px 52px', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 'auto' }}>
-            <span style={{
-              width: 26, height: 26, borderRadius: 7, flexShrink: 0,
-              background: 'conic-gradient(from 220deg at 50% 50%, #E63B6F, #F47C3C, #7B2D8B, #2EAEE0, #E63B6F)',
-            }} />
-            <span style={{ fontWeight: 800, fontSize: 15, color: 'var(--ink)', letterSpacing: '-.01em' }}>Comparte CMS</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{
+                width: 26, height: 26, borderRadius: 7, flexShrink: 0,
+                background: 'conic-gradient(from 220deg at 50% 50%, #E63B6F, #F47C3C, #7B2D8B, #2EAEE0, #E63B6F)',
+              }} />
+              <span style={{ fontWeight: 800, fontSize: 15, color: 'var(--ink)', letterSpacing: '-.01em' }}>Comparte CMS</span>
+            </div>
+            <Link
+              to="/"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 5,
+                fontSize: 12, fontWeight: 600, color: 'var(--muted)',
+                textDecoration: 'none', padding: '6px 12px',
+                borderRadius: 8, border: '1px solid var(--line)',
+                transition: 'color .15s, border-color .15s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--ink)'; e.currentTarget.style.borderColor = '#9A95AE' }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--muted)'; e.currentTarget.style.borderColor = 'var(--line)' }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+              Volver al inicio
+            </Link>
           </div>
 
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '24px 0' }}>

@@ -29,6 +29,12 @@ import Profile from './pages/profile/Profile'
 import AuditLog from './pages/audit/AuditLog'
 import ChatAdmin from './pages/chat/ChatAdmin'
 
+import Landing from './pages/public/Landing'
+import PublicNews from './pages/public/PublicNews'
+import PublicNewsDetail from './pages/public/PublicNewsDetail'
+import PublicTestimonials from './pages/public/PublicTestimonials'
+import PublicContact from './pages/public/PublicContact'
+
 function Private({ children, superadmin }) {
   return (
     <ProtectedRoute requiredRole={superadmin ? 'superadmin' : undefined}>
@@ -42,12 +48,19 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Públicas */}
+          {/* Sitio público */}
+          <Route path="/" element={<Landing />} />
+          <Route path="/:countrySlug/noticias" element={<PublicNews />} />
+          <Route path="/:countrySlug/noticias/:newsSlug" element={<PublicNewsDetail />} />
+          <Route path="/:countrySlug/testimonios" element={<PublicTestimonials />} />
+          <Route path="/:countrySlug/solicitudes" element={<PublicContact />} />
+
+          {/* Auth */}
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
 
-          {/* Protegidas */}
+          {/* CMS protegido */}
           <Route path="/dashboard" element={<Private><Dashboard /></Private>} />
 
           <Route path="/news" element={<Private><NewsList /></Private>} />
@@ -77,9 +90,7 @@ export default function App() {
           <Route path="/audit" element={<Private superadmin><AuditLog /></Private>} />
           <Route path="/chat/admin" element={<Private superadmin><ChatAdmin /></Private>} />
 
-          {/* Redirects */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

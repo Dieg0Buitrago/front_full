@@ -1,15 +1,13 @@
-// Logos: guarda los archivos en src/assets/logos/ con estos nombres exactos
-// y descomenta las importaciones cuando los tengas listos.
-// import argentinaLogo from '../assets/logos/argentina.png'
-// import chileLogo     from '../assets/logos/chile.png'
-// import ecuadorLogo   from '../assets/logos/ecuador.png'
+import argentinaLogo from '../assets/logos/argentina.svg'
+import chileLogo     from '../assets/logos/chile.svg'
+import ecuadorLogo   from '../assets/logos/ecuador.svg'
 
 export const COUNTRIES = {
   argentina: {
     slug: 'argentina',
     name: 'Argentina',
     flag: '🇦🇷',
-    logo: null, // reemplaza null por argentinaLogo al agregar el archivo
+    logo: argentinaLogo,
     i1: 'A', i2: 'R',
     c1: '#E8305A', c2: '#F47B3E', c3: '#3AB8D4',
     accent: '#3AB8D4',
@@ -27,7 +25,7 @@ export const COUNTRIES = {
     slug: 'chile',
     name: 'Chile',
     flag: '🇨🇱',
-    logo: null, // reemplaza null por chileLogo al agregar el archivo
+    logo: chileLogo,
     i1: 'C', i2: 'H',
     c1: '#E8305A', c2: '#F47B3E', c3: '#7B2D8B',
     accent: '#E8305A',
@@ -45,7 +43,7 @@ export const COUNTRIES = {
     slug: 'ecuador',
     name: 'Ecuador',
     flag: '🇪🇨',
-    logo: null, // reemplaza null por ecuadorLogo al agregar el archivo
+    logo: ecuadorLogo,
     i1: 'E', i2: 'C',
     c1: '#FFD100', c2: '#F47B3E', c3: '#3AB8D4',
     accent: '#FFD100',

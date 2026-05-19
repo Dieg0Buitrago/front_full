@@ -280,8 +280,8 @@ export default function ChatInterface({
       )}
 
       {/* Mensajes */}
-      <div className="flex-1 flex flex-col max-w-2xl mx-auto w-full px-4 pt-6 pb-44 overflow-hidden relative z-10">
-        <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto space-y-5 scrollbar-hide py-2 px-1">
+      <div className="flex-1 flex flex-col max-w-2xl mx-auto w-full px-4 pt-14 relative z-10">
+        <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto space-y-5 scrollbar-hide pt-2 pb-36 px-1">
           <AnimatePresence initial={false}>
             {!connected && messages.length === 0 && (
               <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-5 pt-4">
@@ -400,7 +400,7 @@ export default function ChatInterface({
         {showScrollBtn && (
           <motion.button initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}
             onClick={() => scrollToBottom(true)}
-            className={cn('absolute bottom-[110px] right-4 z-20 w-8 h-8 rounded-full flex items-center justify-center shadow-lg border transition-colors',
+            className={cn('absolute bottom-36 right-4 z-20 w-8 h-8 rounded-full flex items-center justify-center shadow-lg border transition-colors',
               isDark ? 'bg-theme-panel border-theme-border text-white/60 hover:text-white' : 'bg-white border-neutral-200 text-neutral-500 hover:text-neutral-900')}>
             {unreadCount > 0 && (
               <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-theme-accent text-white text-[9px] font-bold flex items-center justify-center">

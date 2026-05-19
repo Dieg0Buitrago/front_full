@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { getNewsById, createNews, updateNews } from '../../api/news'
+import { getNewsById, createNews, updateNews, uploadNewsImage } from '../../api/news'
 import { getActiveCountries } from '../../api/countries'
 import Layout from '../../components/Layout'
 import PageHeader from '../../components/PageHeader'
+import { ImagePlus, X, Upload } from 'lucide-react'
 
 export default function NewsForm() {
   const { id } = useParams()
@@ -11,11 +12,20 @@ export default function NewsForm() {
   const isEdit = Boolean(id)
 
   const [form, setForm] = useState({
-    titulo: '', resumen: '', contenido: '', slug: '', pais_id: '', estado: 'borrador', imagen_principal_url: '',
+    titulo: '', resumen: '', contenido: '', slug: '', pais_id: '', estado: 'borrador',
   })
   const [countries, setCountries] = useState([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  const [imageUrl, setImageUrl]         = useState('')
+  const [imageFile, setImageFile]       = useState(null)
+  const [imagePreview, setImagePreview] = useState('')
+  const [imageLoading, setImageLoading] = useState(false)
+  const [imageError, setImageError]     = useState('')
+  const [imageSuccess, setImageSuccess] = useState(false)
+
+  const fileRef = useRef(null)
 
   useEffect(() => {
     getActiveCountries().then((r) => setCountries(r.data))
@@ -23,14 +33,14 @@ export default function NewsForm() {
       getNewsById(id).then((r) => {
         const d = r.data
         setForm({
-          titulo: d.titulo || '',
-          resumen: d.resumen || '',
+          titulo:    d.titulo    || '',
+          resumen:   d.resumen   || '',
           contenido: d.contenido || '',
-          slug: d.slug || '',
-          pais_id: d.pais_id || '',
-          estado: d.estado || 'borrador',
-          imagen_principal_url: d.imagen_principal_url || '',
+          slug:      d.slug      || '',
+          pais_id:   d.pais_id   || '',
+          estado:    d.estado    || 'borrador',
         })
+        if (d.imagen_principal_url) setImageUrl(d.imagen_principal_url)
       })
     }
   }, [id])
@@ -40,7 +50,9 @@ export default function NewsForm() {
     setForm((f) => ({
       ...f,
       [name]: value,
-      ...(name === 'titulo' && !isEdit ? { slug: value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') } : {}),
+      ...(name === 'titulo' && !isEdit
+        ? { slug: value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') }
+        : {}),
     }))
   }
 
@@ -49,14 +61,55 @@ export default function NewsForm() {
     setError('')
     setLoading(true)
     try {
-      if (isEdit) await updateNews(id, form)
-      else await createNews(form)
-      navigate('/news')
+      if (isEdit) {
+        await updateNews(id, form)
+        navigate('/news')
+      } else {
+        const res = await createNews(form)
+        const newId = res.data?.data?.id
+        // Redirigir al edit para que el usuario pueda subir la imagen
+        navigate(`/news/${newId}/edit`)
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Error al guardar')
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImageFile(file)
+    setImagePreview(URL.createObjectURL(file))
+    setImageError('')
+    setImageSuccess(false)
+  }
+
+  const handleImageUpload = async () => {
+    if (!imageFile) return
+    setImageLoading(true)
+    setImageError('')
+    setImageSuccess(false)
+    try {
+      const res = await uploadNewsImage(id, imageFile)
+      setImageUrl(res.data.url)
+      setImageFile(null)
+      setImagePreview('')
+      setImageSuccess(true)
+      setTimeout(() => setImageSuccess(false), 3000)
+    } catch (err) {
+      setImageError(err.response?.data?.message || 'Error al subir la imagen')
+    } finally {
+      setImageLoading(false)
+    }
+  }
+
+  const handleRemovePreview = () => {
+    setImageFile(null)
+    setImagePreview('')
+    setImageError('')
+    if (fileRef.current) fileRef.current.value = ''
   }
 
   return (
@@ -111,9 +164,96 @@ export default function NewsForm() {
               </select>
             </div>
 
+            {/* Imagen principal */}
             <div className="cms-field">
-              <label className="cms-label" htmlFor="imagen_principal_url">URL de imagen destacada</label>
-              <input id="imagen_principal_url" name="imagen_principal_url" className="cms-input" value={form.imagen_principal_url} onChange={handleChange} placeholder="https://cdn.example.com/imagen.jpg" />
+              <label className="cms-label">Imagen destacada</label>
+
+              {isEdit ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {/* Preview: imagen actual o seleccionada */}
+                  {(imagePreview || imageUrl) ? (
+                    <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--line)', background: 'var(--field)' }}>
+                      <img
+                        src={imagePreview || imageUrl}
+                        alt="Imagen destacada"
+                        style={{ width: '100%', aspectRatio: '16/9', objectFit: 'cover', display: 'block' }}
+                      />
+                      {imagePreview && (
+                        <button
+                          type="button"
+                          onClick={handleRemovePreview}
+                          title="Quitar selección"
+                          style={{
+                            position: 'absolute', top: 6, right: 6,
+                            width: 26, height: 26, borderRadius: '50%',
+                            background: 'rgba(0,0,0,0.55)', border: 'none',
+                            color: '#fff', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          }}
+                        >
+                          <X size={13} />
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => fileRef.current?.click()}
+                      style={{
+                        height: 110, borderRadius: 10, border: '2px dashed var(--line)',
+                        background: 'var(--field)', display: 'flex', flexDirection: 'column',
+                        alignItems: 'center', justifyContent: 'center', gap: 6,
+                        cursor: 'pointer', transition: 'border-color .15s',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--pink)'}
+                      onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--line)'}
+                    >
+                      <ImagePlus size={22} style={{ color: 'var(--muted)' }} />
+                      <span style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 500 }}>Haz clic para seleccionar</span>
+                      <span style={{ fontSize: 11, color: 'var(--muted-2)' }}>JPG, PNG, WebP · máx. 20 MB</span>
+                    </div>
+                  )}
+
+                  <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" style={{ display: 'none' }} onChange={handleFileChange} />
+
+                  {/* Botones de acción */}
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      type="button"
+                      onClick={() => fileRef.current?.click()}
+                      className="cms-btn-outline"
+                      style={{ flex: 1, height: 36, fontSize: 12 }}
+                    >
+                      {imageUrl && !imagePreview ? 'Cambiar imagen' : 'Seleccionar archivo'}
+                    </button>
+                    {imagePreview && (
+                      <button
+                        type="button"
+                        onClick={handleImageUpload}
+                        disabled={imageLoading}
+                        className="cms-btn-primary"
+                        style={{ flex: 1, height: 36, fontSize: 12 }}
+                      >
+                        {imageLoading ? (
+                          'Subiendo…'
+                        ) : (
+                          <><Upload size={13} style={{ marginRight: 5 }} />Subir imagen</>
+                        )}
+                      </button>
+                    )}
+                  </div>
+
+                  {imageError && (
+                    <p style={{ margin: 0, fontSize: 12, color: 'var(--red)' }}>{imageError}</p>
+                  )}
+                  {imageSuccess && (
+                    <p style={{ margin: 0, fontSize: 12, color: 'var(--green)', fontWeight: 600 }}>✓ Imagen actualizada correctamente</p>
+                  )}
+                </div>
+              ) : (
+                <p style={{ margin: 0, fontSize: 12, color: 'var(--muted)', background: 'var(--field)', border: '1px solid var(--line)', borderRadius: 10, padding: '10px 14px' }}>
+                  Guarda la noticia primero para poder subir una imagen.
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -154,11 +294,20 @@ export default function NewsForm() {
             <button type="button" onClick={() => navigate('/news')} className="cms-btn-ghost">
               Cancelar
             </button>
-            <button type="button" onClick={() => { setForm(f => ({ ...f, estado: 'borrador' })); document.getElementById('news-form').requestSubmit() }} className="cms-btn-outline" style={{ height: 40 }} disabled={loading}>
+            <button
+              type="button"
+              onClick={() => {
+                setForm(f => ({ ...f, estado: 'borrador' }))
+                document.getElementById('news-form').requestSubmit()
+              }}
+              className="cms-btn-outline"
+              style={{ height: 40 }}
+              disabled={loading}
+            >
               Guardar borrador
             </button>
             <button type="submit" form="news-form" disabled={loading} className="cms-btn-primary">
-              {loading ? 'Guardando…' : isEdit ? 'Actualizar noticia' : 'Publicar noticia'}
+              {loading ? 'Guardando…' : isEdit ? 'Actualizar noticia' : 'Crear y continuar →'}
             </button>
           </div>
         </div>

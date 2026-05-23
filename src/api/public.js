@@ -5,6 +5,7 @@ const pub = axios.create({
 });
 
 export const getPublicCountries = () => pub.get("/countries/public");
+export const getPublicCountryBySlug = (slug) => pub.get(`/countries/public/${slug}`);
 export const getPublicNews = (slug) => pub.get(`/news/public/${slug}`);
 export const getPublicNewsDetail = (countrySlug, newsSlug) =>
   pub.get(`/news/public/${countrySlug}/${newsSlug}`);

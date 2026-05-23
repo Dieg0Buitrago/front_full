@@ -71,7 +71,7 @@ export default function ContactDetail() {
                 </span>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--ink)' }}>{item.nombre}</div>
-                  <div style={{ fontSize: 12.5, color: 'var(--muted)', marginTop: 1 }}>{item.email}</div>
+                  <div style={{ fontSize: 12.5, color: 'var(--muted)', marginTop: 1 }}>{item.correo}</div>
                 </div>
               </div>
               <StatusBadge value={item.estado} />
@@ -110,10 +110,10 @@ export default function ContactDetail() {
           </div>
           <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
             <InfoRow label="Nombre completo" value={item.nombre} />
-            <InfoRow label="Email" value={item.email} />
+            <InfoRow label="Email" value={item.correo} />
             <InfoRow label="Teléfono" value={item.telefono} />
             <InfoRow label="Finalidad" value={item.finalidad} />
-            <InfoRow label="País" value={item.pais_nombre || item.pais_id} />
+            <InfoRow label="País" value={item.paises?.nombre || item.pais_id} />
             <InfoRow label="Estado" value={item.estado} />
             <InfoRow label="Fecha" value={item.created_at ? new Date(item.created_at).toLocaleString('es-CO') : undefined} />
           </div>

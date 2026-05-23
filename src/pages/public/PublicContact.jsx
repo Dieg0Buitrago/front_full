@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { submitContact, getPublicCountries } from '../../api/public'
-import { getCountry } from '../../config/countries'
+import { submitContact } from '../../api/public'
+import { useCountryTheme } from '../../contexts/CountryContext'
 import PublicLayout from './PublicLayout'
 
 const FINALIDADES = [
@@ -26,28 +26,17 @@ function Field({ label, required, children }) {
 
 export default function PublicContact() {
   const { countrySlug } = useParams()
-  const country  = getCountry(countrySlug)
+  const country  = useCountryTheme()
   const accent   = country?.accent ?? '#E8305A'
   const c1       = country?.c1 ?? '#E8305A'
   const c2       = country?.c2 ?? '#F47B3E'
   const c3       = country?.c3 ?? '#3AB8D4'
 
-  const [paisId, setPaisId]   = useState(null)
   const [form, setForm]       = useState({ nombre: '', correo: '', telefono: '', finalidad: '', mensaje: '' })
   const [sending, setSending] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError]     = useState(null)
   const [focusedField, setFocusedField] = useState(null)
-
-  useEffect(() => {
-    getPublicCountries()
-      .then(r => {
-        const list  = r.data?.data || r.data || []
-        const found = list.find(c => c.slug === countrySlug)
-        if (found) setPaisId(found.id)
-      })
-      .catch(() => {})
-  }, [countrySlug])
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
 
@@ -72,13 +61,13 @@ export default function PublicContact() {
       setError('Todos los campos son obligatorios.')
       return
     }
-    if (!paisId) {
+    if (!country?.id) {
       setError('No se pudo identificar el país. Recarga la página.')
       return
     }
     setSending(true); setError(null)
     try {
-      await submitContact({ ...form, pais_id: paisId })
+      await submitContact({ ...form, pais_id: country.id })
       setSuccess(true)
       setForm({ nombre: '', correo: '', telefono: '', finalidad: '', mensaje: '' })
     } catch (err) {
@@ -93,11 +82,11 @@ export default function PublicContact() {
       {/* ══ HERO ══ */}
       <section style={{
         background: country?.heroBg ?? 'linear-gradient(135deg,#E63B6F,#7B2D8B)',
-        padding: '72px 40px 100px',
+        padding: '72px 40px 60px',
         color: '#fff', position: 'relative', overflow: 'hidden',
       }}>
         <div style={{ position: 'absolute', width: 400, height: 400, borderRadius: '50%', border: `1px solid ${accent}25`, top: -120, right: -100, pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', width: 240, height: 240, borderRadius: '50%', border: `1px solid ${c2}20`, bottom: -80, left: 60, pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', width: 240, height: 240, borderRadius: '50%', border: `1px solid ${c2}20`, bottom: -40, left: 60, pointerEvents: 'none' }} />
 
         <div style={{ maxWidth: 680, margin: '0 auto', textAlign: 'center' }}>
           {country?.logo && (
@@ -118,8 +107,8 @@ export default function PublicContact() {
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 4, background: `linear-gradient(90deg,${c1},${c2},${c3})` }} />
       </section>
 
-      {/* ══ FORM — overlaps hero ══ */}
-      <section style={{ maxWidth: 960, margin: '-52px auto 80px', padding: '0 24px' }}>
+      {/* ══ FORM ══ */}
+      <section style={{ maxWidth: 960, margin: '0 auto', padding: '48px 24px 80px' }}>
         <div style={{
           display: 'grid', gridTemplateColumns: '280px 1fr', gap: 0,
           background: '#fff', borderRadius: 24, overflow: 'hidden',
@@ -154,7 +143,6 @@ export default function PublicContact() {
               <InfoItem icon="🔒" label="Privacidad" value="Tus datos están seguros" accent={accent} />
             </div>
 
-            {/* decorative dots */}
             <div style={{ display: 'flex', gap: 6, marginTop: 'auto' }}>
               {[c1, c2, c3].map((c, i) => (
                 <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: c, opacity: 0.7 }} />

@@ -49,6 +49,7 @@ export default function ContactList() {
               <tr>
                 <th>Nombre</th>
                 <th>Email</th>
+                <th>País</th>
                 <th>Finalidad</th>
                 <th>Estado</th>
                 <th style={{ textAlign: 'right' }}>Acciones</th>
@@ -56,9 +57,9 @@ export default function ContactList() {
             </thead>
             <tbody>
               {items.length === 0 ? (
-                <tr><td colSpan={5} style={{ textAlign: 'center', padding: '48px 20px', color: 'var(--muted)' }}>Sin solicitudes registradas</td></tr>
+                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '48px 20px', color: 'var(--muted)' }}>Sin solicitudes registradas</td></tr>
               ) : items.map((item) => (
-                <tr key={item.id}>
+                <tr key={item.id} style={{ opacity: item.estado === 'gestionada' || item.estado === 'cerrada' ? 0.6 : 1 }}>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <span style={{
@@ -75,7 +76,8 @@ export default function ContactList() {
                       </div>
                     </div>
                   </td>
-                  <td style={{ fontSize: 13, color: 'var(--ink)' }}>{item.email}</td>
+                  <td style={{ fontSize: 13, color: 'var(--ink)' }}>{item.correo}</td>
+                  <td style={{ fontSize: 12.5, color: 'var(--muted)' }}>{item.paises?.nombre || '—'}</td>
                   <td style={{ fontSize: 12.5, color: 'var(--muted)', textTransform: 'capitalize' }}>{item.finalidad || '—'}</td>
                   <td><StatusBadge value={item.estado} /></td>
                   <td>

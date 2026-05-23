@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Send, RotateCcw, Paperclip, Bot, Moon, Sun, UserCog, LogOut, Copy, Check, ArrowDown, User } from 'lucide-react'
+import { Send, RotateCcw, Bot, Moon, Sun, UserCog, LogOut, Copy, Check, ArrowDown, User } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
@@ -76,14 +76,11 @@ export default function ChatInterface({
   onClose,
 }) {
   const [input, setInput]               = useState('')
-  const [showUpload, setShowUpload]     = useState(false)
-  const [uploadStatus, setUploadStatus] = useState('')
   const [displayTexts, setDisplayTexts] = useState({})
   const [copiedId, setCopiedId]         = useState(null)
   const [showScrollBtn, setShowScrollBtn] = useState(false)
   const [unreadCount, setUnreadCount]   = useState(0)
 
-  const fileRef      = useRef(null)
   const scrollRef    = useRef(null)
   const textareaRef  = useRef(null)
   const navigate     = useNavigate()
@@ -142,18 +139,27 @@ export default function ChatInterface({
     if (atBottom) setUnreadCount(0)
   }
 
+  // Scroll cuando llega un nuevo mensaje (separado del indicador de escritura)
   useEffect(() => {
-    const total = messages.length + (typing ? 1 : 0)
-    if (total > prevMsgCount.current) {
-      const last = messages[messages.length - 1]
-      if (isAtBottomRef.current) {
-        setTimeout(() => scrollToBottom(true), 30)
-      } else if (last?.role !== 'user') {
-        setUnreadCount(p => p + 1)
-      }
+    if (messages.length <= prevMsgCount.current) return
+    const last = messages[messages.length - 1]
+    if (last?.role === 'bot') {
+      // Respuesta del bot: siempre desplazar para mostrarla
+      setTimeout(() => scrollToBottom(true), 30)
+    } else if (isAtBottomRef.current) {
+      setTimeout(() => scrollToBottom(true), 30)
+    } else {
+      setUnreadCount(p => p + 1)
     }
-    prevMsgCount.current = total
-  }, [messages, typing, scrollToBottom])
+    prevMsgCount.current = messages.length
+  }, [messages, scrollToBottom])
+
+  // Scroll cuando aparece el indicador de escritura
+  useEffect(() => {
+    if (typing && isAtBottomRef.current) {
+      setTimeout(() => scrollToBottom(true), 30)
+    }
+  }, [typing, scrollToBottom])
 
   function handleSend() {
     const text = input.trim()
@@ -170,17 +176,6 @@ export default function ChatInterface({
     el.style.height = Math.min(el.scrollHeight, 120) + 'px'
   }
 
-  async function handleUpload() {
-    const file = fileRef.current?.files[0]
-    if (!file) return
-    setUploadStatus('Subiendo...')
-    try {
-      const msg = await uploadDocument(file)
-      setUploadStatus(`✓ ${msg}`)
-    } catch (e) {
-      setUploadStatus(`⚠ ${e.message}`)
-    }
-  }
 
   function handleCopy(id, text) {
     navigator.clipboard.writeText(text).then(() => {
@@ -280,8 +275,8 @@ export default function ChatInterface({
       )}
 
       {/* Mensajes */}
-      <div className="flex-1 flex flex-col max-w-2xl mx-auto w-full px-4 pt-14 relative z-10">
-        <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto space-y-5 scrollbar-hide pt-2 pb-36 px-1">
+      <div className="flex-1 flex flex-col max-w-2xl mx-auto w-full px-4 pt-14 relative z-10 min-h-0">
+        <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto space-y-5 scrollbar-hide pt-2 pb-36 px-1 min-h-0">
           <AnimatePresence initial={false}>
             {!connected && messages.length === 0 && (
               <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-5 pt-4">
@@ -412,32 +407,6 @@ export default function ChatInterface({
         )}
       </AnimatePresence>
 
-      {/* Upload panel superadmin + adminSidebar */}
-      {isSuperadmin && adminSidebar && (
-        <div className="relative z-10 max-w-2xl mx-auto w-full px-4 pb-3">
-          <div className={cn('px-4 py-3 rounded-2xl border flex flex-wrap gap-3 items-center', isDark ? 'bg-theme-panel border-theme-border' : 'bg-white border-neutral-200')}>
-            <span className={cn('text-[10px] font-bold uppercase tracking-widest', isDark ? 'text-theme-text-dim' : 'text-neutral-400')}>Subir documento al RAG</span>
-            <input ref={fileRef} type="file" accept=".pdf" className="flex-1 text-xs text-neutral-400 min-w-0" />
-            <button onClick={handleUpload} className="px-4 py-1.5 rounded-xl bg-theme-accent text-white text-xs font-bold whitespace-nowrap">Subir</button>
-            {uploadStatus && (
-              <span className={cn('text-xs font-mono w-full', uploadStatus.startsWith('✓') ? 'text-green-400' : 'text-red-400')}>{uploadStatus}</span>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Upload flotante sin adminSidebar */}
-      {isSuperadmin && !adminSidebar && showUpload && (
-        <div className="absolute bottom-[104px] left-0 right-0 max-w-2xl mx-auto px-4 z-20">
-          <div className={cn('p-3 rounded-2xl border shadow-xl flex flex-wrap gap-3 items-center', isDark ? 'bg-theme-panel border-theme-border' : 'bg-white border-neutral-200')}>
-            <input ref={fileRef} type="file" accept=".pdf" className="flex-1 text-xs text-neutral-400 min-w-0" />
-            <button onClick={handleUpload} className="px-4 py-1.5 rounded-xl bg-theme-accent text-white text-xs font-bold whitespace-nowrap">Subir PDF</button>
-            {uploadStatus && (
-              <span className={cn('text-xs font-mono', uploadStatus.startsWith('✓') ? 'text-green-400' : 'text-red-400')}>{uploadStatus}</span>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Input flotante */}
       <div className={cn('absolute bottom-0 left-0 w-full p-3 pb-4 z-10',
@@ -479,14 +448,6 @@ export default function ChatInterface({
                 </span>
               )}
             </div>
-
-            {isSuperadmin && !adminSidebar && (
-              <button onClick={() => { setShowUpload(v => !v); setUploadStatus('') }} title="Subir documento al RAG"
-                className={cn('flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all mb-0.5',
-                  showUpload ? 'bg-theme-accent text-white' : isDark ? 'text-white/30 hover:text-white/70 hover:bg-white/10' : 'text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100')}>
-                <Paperclip size={13} />
-              </button>
-            )}
 
             <button onClick={handleSend} disabled={!input.trim() || !connected || input.length > MAX_CHARS}
               className={cn('flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 shadow-lg mb-0.5',

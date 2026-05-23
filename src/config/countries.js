@@ -1,66 +1,46 @@
-import argentinaLogo from '../assets/logos/argentina.svg'
-import chileLogo     from '../assets/logos/chile.svg'
-import ecuadorLogo   from '../assets/logos/ecuador.svg'
-
-export const COUNTRIES = {
-  argentina: {
-    slug: 'argentina',
-    name: 'Argentina',
-    flag: '🇦🇷',
-    logo: argentinaLogo,
-    i1: 'A', i2: 'R',
-    c1: '#E8305A', c2: '#F47B3E', c3: '#3AB8D4',
-    accent: '#3AB8D4',
-    accentDark: '#0b2b50',
-    cardBg: 'linear-gradient(155deg, #040e1c 0%, #071b36 55%, #0b2b50 100%)',
-    heroBg: 'linear-gradient(135deg, #040e1c 0%, #082540 45%, #3AB8D4 100%)',
-    heroOverlay: 'linear-gradient(160deg, rgba(4,14,28,0.96) 0%, rgba(7,27,54,0.88) 60%, rgba(58,184,212,0.3) 100%)',
-    navBg: 'rgba(4,14,28,0.92)',
-    sectionBg: '#f0f8fb',
-    tagline: 'Argentina Comparte',
-    desc: 'Conectamos comunidades argentinas para construir un futuro más justo y solidario.',
-    values: ['Solidaridad', 'Identidad', 'Progreso'],
-  },
-  chile: {
-    slug: 'chile',
-    name: 'Chile',
-    flag: '🇨🇱',
-    logo: chileLogo,
-    i1: 'C', i2: 'H',
-    c1: '#E8305A', c2: '#F47B3E', c3: '#7B2D8B',
-    accent: '#E8305A',
-    accentDark: '#420d1c',
-    cardBg: 'linear-gradient(155deg, #130305 0%, #2c0810 55%, #420d1c 100%)',
-    heroBg: 'linear-gradient(135deg, #130305 0%, #3d0c18 45%, #E8305A 100%)',
-    heroOverlay: 'linear-gradient(160deg, rgba(19,3,5,0.96) 0%, rgba(44,8,16,0.88) 60%, rgba(232,48,90,0.3) 100%)',
-    navBg: 'rgba(19,3,5,0.92)',
-    sectionBg: '#fdf0f2',
-    tagline: 'Chile Comparte',
-    desc: 'Unimos a chilenas y chilenos bajo un propósito transformador de impacto real.',
-    values: ['Comunidad', 'Innovación', 'Impacto'],
-  },
-  ecuador: {
-    slug: 'ecuador',
-    name: 'Ecuador',
-    flag: '🇪🇨',
-    logo: ecuadorLogo,
-    i1: 'E', i2: 'C',
-    c1: '#FFD100', c2: '#F47B3E', c3: '#3AB8D4',
-    accent: '#FFD100',
-    accentDark: '#3a2c00',
-    cardBg: 'linear-gradient(155deg, #100d00 0%, #251c00 55%, #3a2c00 100%)',
-    heroBg: 'linear-gradient(135deg, #100d00 0%, #2e2000 45%, #FFD100 100%)',
-    heroOverlay: 'linear-gradient(160deg, rgba(16,13,0,0.96) 0%, rgba(37,28,0,0.88) 60%, rgba(255,209,0,0.25) 100%)',
-    navBg: 'rgba(16,13,0,0.92)',
-    sectionBg: '#fdfbf0',
-    tagline: 'Ecuador Comparte',
-    desc: 'Impulsamos el potencial ecuatoriano desde la colaboración y la solidaridad.',
-    values: ['Propósito', 'Territorio', 'Unión'],
-  },
+function hexToRgb(hex) {
+  const h = (hex || '#1a1a2e').replace('#', '')
+  return {
+    r: parseInt(h.slice(0, 2), 16) || 0,
+    g: parseInt(h.slice(2, 4), 16) || 0,
+    b: parseInt(h.slice(4, 6), 16) || 0,
+  }
 }
 
-export function getCountry(slug) {
-  return COUNTRIES[slug] ?? null
+function darken(hex, factor) {
+  const { r, g, b } = hexToRgb(hex)
+  const d = v => Math.round(v * factor).toString(16).padStart(2, '0')
+  return `#${d(r)}${d(g)}${d(b)}`
 }
 
-export const COUNTRY_LIST = Object.values(COUNTRIES)
+export function buildTheme(c) {
+  if (!c) return null
+  const c1 = c.color_primario || '#E8305A'
+  const c2 = c.color_secundario || '#F47B3E'
+  const c3 = c.color_acento || '#3AB8D4'
+  const oscuro = c.color_oscuro || '#1a1a2e'
+  const { r, g, b } = hexToRgb(oscuro)
+  const dark1 = darken(oscuro, 0.38)
+  const dark2 = darken(oscuro, 0.65)
+  const navR = Math.round(r * 0.38)
+  const navG = Math.round(g * 0.38)
+  const navB = Math.round(b * 0.38)
+
+  return {
+    id: c.id,
+    slug: c.slug,
+    name: c.nombre,
+    flag: c.flag || '',
+    logo: c.logo_url || null,
+    tagline: c.tagline || `${c.nombre} Comparte`,
+    desc: c.descripcion_publica || '',
+    values: Array.isArray(c.valores) ? c.valores : [],
+    c1, c2, c3,
+    accent: c3,
+    accentDark: oscuro,
+    cardBg: `linear-gradient(155deg, ${dark1} 0%, ${dark2} 55%, ${oscuro} 100%)`,
+    heroBg: `linear-gradient(135deg, ${dark1} 0%, ${dark2} 45%, ${c1} 100%)`,
+    navBg: `rgba(${navR},${navG},${navB},0.92)`,
+    sectionBg: '#f5f5f8',
+  }
+}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { getPublicNews } from '../../api/public'
-import { getCountry } from '../../config/countries'
+import { useCountryTheme } from '../../contexts/CountryContext'
 import PublicLayout from './PublicLayout'
 
 function NewsCard({ item, countrySlug, accent }) {
@@ -73,7 +73,7 @@ function NewsCard({ item, countrySlug, accent }) {
 
 export default function PublicNews() {
   const { countrySlug } = useParams()
-  const country  = getCountry(countrySlug)
+  const country  = useCountryTheme()
   const accent   = country?.accent ?? '#E8305A'
   const c1       = country?.c1 ?? '#E8305A'
   const c2       = country?.c2 ?? '#F47B3E'

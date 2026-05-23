@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { getPublicTestimonials } from '../../api/public'
-import { getCountry } from '../../config/countries'
+import { useCountryTheme } from '../../contexts/CountryContext'
 import PublicLayout from './PublicLayout'
 
 function TestimonialCard({ item, accent, c1, c2 }) {
@@ -88,7 +88,7 @@ function TestimonialCard({ item, accent, c1, c2 }) {
 
 export default function PublicTestimonials() {
   const { countrySlug } = useParams()
-  const country  = getCountry(countrySlug)
+  const country  = useCountryTheme()
   const accent   = country?.accent ?? '#E8305A'
   const c1       = country?.c1 ?? '#E8305A'
   const c2       = country?.c2 ?? '#F47B3E'

@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { COUNTRY_LIST } from '../../config/countries'
+import { getPublicCountries } from '../../api/public'
+import { buildTheme } from '../../config/countries'
 import ChatWidget from '../../chat/components/ChatWidget'
 
 const B = { pink: '#E8305A', orange: '#F47B3E', purple: '#7B2D8B', cyan: '#3AB8D4' }
@@ -50,53 +51,61 @@ function CountryCard({ country }) {
       style={{
         flex: '1 1 300px', maxWidth: 400,
         borderRadius: 28,
-        background: country.cardBg,
-        border: `1px solid ${hovered ? country.accent + '50' : 'rgba(255,255,255,0.07)'}`,
+        background: '#fff',
+        border: `1px solid ${hovered ? country.accent + '40' : 'rgba(0,0,0,0.08)'}`,
         overflow: 'hidden',
         transition: 'transform 0.38s cubic-bezier(.22,.68,0,1.2), box-shadow 0.38s ease, border-color 0.2s',
         transform: hovered ? 'translateY(-12px)' : 'translateY(0)',
         boxShadow: hovered
-          ? `0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px ${country.accent}30, inset 0 1px 0 rgba(255,255,255,0.08)`
-          : '0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04)',
+          ? `0 32px 64px rgba(0,0,0,0.14), 0 0 0 1px ${country.accent}25`
+          : '0 4px 20px rgba(0,0,0,0.08)',
       }}
     >
       {/* top bar */}
       <div style={{
-        height: 4,
+        height: 5,
         background: `linear-gradient(90deg, ${country.c1}, ${country.c2}, ${country.c3})`,
-        opacity: hovered ? 1 : 0.6, transition: 'opacity 0.2s',
+        opacity: hovered ? 1 : 0.75, transition: 'opacity 0.2s',
       }} />
 
       <div style={{ padding: '36px 32px 30px' }}>
 
-        {/* Logo image */}
+        {/* Logo / flag avatar */}
         <div style={{
-          width: 130, height: 130,
-          marginBottom: 24,
+          width: 110, height: 110,
+          marginBottom: 22,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
+          borderRadius: 20,
+          background: `${country.c1}10`,
+          border: `1px solid ${country.c1}20`,
           transition: 'transform 0.3s ease',
           transform: hovered ? 'scale(1.06)' : 'scale(1)',
+          overflow: 'hidden',
         }}>
-          <img
-            src={country.logo}
-            alt={country.tagline}
-            style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'drop-shadow(0 4px 20px rgba(0,0,0,0.5))' }}
-          />
+          {country.logo ? (
+            <img
+              src={country.logo}
+              alt={country.tagline}
+              style={{ width: '85%', height: '85%', objectFit: 'contain' }}
+            />
+          ) : (
+            <span style={{ fontSize: 52 }}>{country.flag}</span>
+          )}
         </div>
 
         {/* Name */}
         <div style={{ marginBottom: 4 }}>
-          <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.4px', lineHeight: 1.1 }}>
+          <div style={{ fontSize: 22, fontWeight: 900, color: '#111', textTransform: 'uppercase', letterSpacing: '0.4px', lineHeight: 1.1 }}>
             {country.name}
           </div>
-          <div style={{ fontSize: 22, fontWeight: 900, color: country.accent, textTransform: 'uppercase', letterSpacing: '0.4px', lineHeight: 1.1 }}>
+          <div style={{ fontSize: 22, fontWeight: 900, color: country.c1, textTransform: 'uppercase', letterSpacing: '0.4px', lineHeight: 1.1 }}>
             COMPARTE
           </div>
         </div>
 
         <div style={{ width: 40, height: 3, borderRadius: 99, background: `linear-gradient(90deg,${country.c1},${country.c2})`, margin: '14px 0' }} />
 
-        <p style={{ color: 'rgba(255,255,255,0.58)', fontSize: 13.5, lineHeight: 1.72, marginBottom: 24 }}>
+        <p style={{ color: '#666', fontSize: 13.5, lineHeight: 1.72, marginBottom: 24 }}>
           {country.desc}
         </p>
 
@@ -113,13 +122,13 @@ function CountryCard({ country }) {
                 textDecoration: 'none', fontSize: 13.5, fontWeight: 600,
                 transition: 'all 0.15s ease',
                 ...(lnk.primary ? {
-                  background: linkHov === lnk.key ? country.accent : `${country.accent}1a`,
-                  border: `1px solid ${country.accent}55`,
-                  color: linkHov === lnk.key ? '#111' : country.accent,
+                  background: linkHov === lnk.key ? country.c1 : `${country.c1}12`,
+                  border: `1px solid ${country.c1}40`,
+                  color: linkHov === lnk.key ? '#fff' : country.c1,
                 } : {
-                  background: linkHov === lnk.key ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  color: linkHov === lnk.key ? '#fff' : 'rgba(255,255,255,0.72)',
+                  background: linkHov === lnk.key ? '#f5f5f5' : '#fafafa',
+                  border: '1px solid rgba(0,0,0,0.07)',
+                  color: linkHov === lnk.key ? '#111' : '#555',
                 }),
               }}
             >
@@ -127,7 +136,7 @@ function CountryCard({ country }) {
                 <span>{lnk.icon}</span>
                 {lnk.label}
               </span>
-              <span style={{ fontSize: 12, opacity: 0.6 }}>→</span>
+              <span style={{ fontSize: 12, opacity: 0.5 }}>→</span>
             </Link>
           ))}
         </div>
@@ -139,6 +148,16 @@ function CountryCard({ country }) {
 export default function Landing() {
   const navigate  = useNavigate()
   const [btnHov, setBtnHov] = useState(false)
+  const [countryList, setCountryList] = useState([])
+
+  useEffect(() => {
+    getPublicCountries()
+      .then(r => {
+        const raw = r.data?.data || r.data || []
+        setCountryList(raw.map(buildTheme).filter(Boolean))
+      })
+      .catch(() => {})
+  }, [])
 
   return (
     <div style={{ minHeight: '100vh', fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
@@ -194,7 +213,7 @@ export default function Landing() {
           border: '1px solid rgba(255,255,255,0.22)', borderRadius: 999, padding: '7px 22px', marginBottom: 40,
         }}>
           <div style={{ display: 'flex', gap: 4 }}>
-            {COUNTRY_LIST.map(c => <span key={c.slug} style={{ fontSize: 15 }}>{c.flag}</span>)}
+            {countryList.map(c => <span key={c.slug} style={{ fontSize: 15 }}>{c.flag}</span>)}
           </div>
           <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#fff' }}>
             CMS Público Multipais
@@ -219,7 +238,7 @@ export default function Landing() {
         </p>
 
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
-          {COUNTRY_LIST.map(c => (
+          {countryList.map(c => (
             <Link key={c.slug} to={`/${c.slug}/noticias`}
               style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 999, padding: '9px 22px', color: '#fff', textDecoration: 'none', fontSize: 14, fontWeight: 600, transition: 'background 0.15s, transform 0.2s' }}
               onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.22)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
@@ -256,7 +275,7 @@ export default function Landing() {
         </div>
 
         <div style={{ display: 'flex', gap: 28, flexWrap: 'wrap', justifyContent: 'center', maxWidth: 1280, margin: '0 auto' }}>
-          {COUNTRY_LIST.map(c => <CountryCard key={c.slug} country={c} />)}
+          {countryList.map(c => <CountryCard key={c.slug} country={c} />)}
         </div>
       </section>
 
@@ -303,7 +322,7 @@ export default function Landing() {
           </span>
         </div>
         <div style={{ display: 'flex', gap: 24 }}>
-          {COUNTRY_LIST.map(c => (
+          {countryList.map(c => (
             <Link key={c.slug} to={`/${c.slug}/noticias`}
               style={{ color: 'rgba(255,255,255,0.32)', textDecoration: 'none', fontSize: 13, fontWeight: 500, transition: 'color 0.15s' }}
               onMouseEnter={e => e.currentTarget.style.color = c.accent}
